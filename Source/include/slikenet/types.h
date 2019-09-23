@@ -22,9 +22,7 @@
 #ifndef __NETWORK_TYPES_H
 #define __NETWORK_TYPES_H
 
-
-
-
+#include <ostream>
 
 #include "defines.h"
 #include "NativeTypes.h"
@@ -318,6 +316,11 @@ struct RAK_DLL_EXPORT SystemAddress
 		void ToString_New(bool writePort, char *dest, size_t destLength, char portDelineator) const;
 #endif
 };
+inline std::ostream& operator<<(std::ostream& os, const SystemAddress& rhs)
+{
+    os << rhs.ToString();
+    return os;
+};
 
 /// Uniquely identifies an instance of RakPeer. Use RakPeer::GetGuidFromSystemAddress() and RakPeer::GetSystemAddressFromGuid() to go between SystemAddress and RakNetGUID
 /// Use RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS) to get your own GUID
@@ -332,14 +335,20 @@ struct RAK_DLL_EXPORT RakNetGUID
 	// Returns a static string
 	// NOT THREADSAFE
 	const char *ToString(void) const;
+    const char *ToHexString(void) const;
 
 	// Return the GUID as a string
 	// dest must be large enough to hold the output
 	// THREADSAFE
 	void ToString(char *dest) const;
 	void ToString(char *dest, size_t destSize) const;
+	void ToHexString(char *dest) const;
+	void ToHexString(char *dest, size_t destSize) const;
 
 	bool FromString(const char *source);
+	bool FromHexString(const char *source);
+
+    static RakNetGUID FromBytes(const unsigned char* buf);
 
 	static unsigned long ToUint32( const RakNetGUID &g );
 
@@ -358,6 +367,11 @@ struct RAK_DLL_EXPORT RakNetGUID
 	bool operator!=( const RakNetGUID& right ) const;
 	bool operator > ( const RakNetGUID& right ) const;
 	bool operator < ( const RakNetGUID& right ) const;
+};
+inline std::ostream& operator<<(std::ostream& os, const RakNetGUID& rhs)
+{
+    os << rhs.ToHexString();
+    return os;
 };
 
 /// Index of an invalid SystemAddress
