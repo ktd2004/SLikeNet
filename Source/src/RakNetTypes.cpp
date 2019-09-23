@@ -277,10 +277,14 @@ void SystemAddress::ToString_Old(bool writePort, char *dest, char portDelineator
 {
 	if (*this == UNASSIGNED_SYSTEM_ADDRESS)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcpy(dest, "UNASSIGNED_SYSTEM_ADDRESS");
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		return;
 	}
 
@@ -292,16 +296,24 @@ void SystemAddress::ToString_Old(bool writePort, char *dest, char portDelineator
 	in.s_addr = address.addr4.sin_addr.s_addr;
 	char buf[1024];
 	inet_ntop(AF_INET, &in, buf, 1024);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 	strcpy(dest, buf);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 	if (writePort)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcat(dest, portStr);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		Itoa(GetPort(), dest + strlen(dest), 10);
 	}
 }
@@ -351,10 +363,14 @@ void SystemAddress::ToString_New(bool writePort, char *dest, char portDelineator
 
 	if (*this == UNASSIGNED_SYSTEM_ADDRESS)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcpy(dest, "UNASSIGNED_SYSTEM_ADDRESS");
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		return;
 	}
 
@@ -376,10 +392,14 @@ void SystemAddress::ToString_New(bool writePort, char *dest, char portDelineator
 		unsigned char ch[2];
 		ch[0] = portDelineator;
 		ch[1] = 0;
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcat(dest, (const char*)ch);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		Itoa(ntohs(address.addr4.sin_port), dest + strlen(dest), 10);
 	}
 }
@@ -776,16 +796,24 @@ const char *RakNetGUID::ToString(void) const
 void RakNetGUID::ToString(char *dest) const
 {
 	if (*this == UNASSIGNED_RAKNET_GUID)
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcpy(dest, "UNASSIGNED_RAKNET_GUID");
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 	else
 		//sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(dest, "%" PRINTF_64_BIT_MODIFIER "u", (long long unsigned int) g);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		// sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
 }
 void RakNetGUID::ToString(char *dest, size_t destLength) const

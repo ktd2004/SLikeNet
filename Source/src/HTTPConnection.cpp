@@ -68,14 +68,15 @@ void HTTPConnection::Get(const char *path)
 
 bool HTTPConnection::HasBadResponse(int *code, SLNet::RakString *data)
 {
-    if(badResponses.IsEmpty())
-        return false;
+	if(badResponses.IsEmpty()) {
+		return false;
+	}
 
 	if (code)
 		*code = badResponses.Peek().code;
 	if (data)
 		*data = badResponses.Pop().data;
-   return true;
+	return true;
 }
 void HTTPConnection::CloseConnection()
 {
