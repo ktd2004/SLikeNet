@@ -758,6 +758,16 @@ const char *RakNetGUID::ToString(void) const
 	ToString(str[lastStrIndex&7], 64);
 	return (char*) str[lastStrIndex&7];
 }
+const char *RakNetGUID::ToHexString(void) const
+{
+	static unsigned char strIndex=0;
+	static char str[8][64];
+
+	unsigned char lastStrIndex=strIndex;
+	strIndex++;
+	ToHexString(str[lastStrIndex&7], 64);
+	return (char*) str[lastStrIndex&7];
+}
 void RakNetGUID::ToString(char *dest) const
 {
 	if (*this == UNASSIGNED_RAKNET_GUID)
@@ -790,6 +800,38 @@ void RakNetGUID::ToString(char *dest, size_t destLength) const
 		sprintf_s(dest, destLength, "%" PRINTF_64_BIT_MODIFIER "u", (long long unsigned int) g);
 		// sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
 }
+void RakNetGUID::ToHexString(char *dest) const
+{
+	if (*this == UNASSIGNED_RAKNET_GUID)
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996)
+#endif
+		strcpy(dest, "UNASSIGNED_RAKNET_GUID");
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+	else
+		//sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4996)
+#endif
+		sprintf(dest, "%" PRINTF_64_BIT_MODIFIER "x", (long long unsigned int) g);
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+		// sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
+}
+void RakNetGUID::ToHexString(char *dest, size_t destLength) const
+{
+	if (*this==UNASSIGNED_RAKNET_GUID)
+		strcpy_s(dest, destLength, "UNASSIGNED_RAKNET_GUID");
+	else
+		//sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
+		sprintf_s(dest, destLength, "%" PRINTF_64_BIT_MODIFIER "x", (long long unsigned int) g);
+		// sprintf_s(dest, destLength, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
+}
 bool RakNetGUID::FromString(const char *source)
 {
 	if (source==0)
@@ -803,6 +845,28 @@ bool RakNetGUID::FromString(const char *source)
 #endif
 	return true;
 
+}
+bool RakNetGUID::FromHexString(const char *source)
+{
+	if (source==0)
+		return false;
+
+#if   defined(WIN32)
+	g=_strtoui64(source, NULL, 16);
+#else
+	// Changed from g=strtoull(source,0,16); for android
+	g=strtoull(source, (char **)NULL, 16);
+#endif
+	return true;
+}
+RakNetGUID RakNetGUID::FromBytes(const unsigned char* buf)
+{
+	uint64_t g = 0;
+	for (int i=0; i<8; ++i){
+		g <<= 8;
+		g |= buf[i];
+	}
+	return RakNetGUID(g);
 }
 unsigned long RakNetGUID::ToUint32( const RakNetGUID &g )
 {
