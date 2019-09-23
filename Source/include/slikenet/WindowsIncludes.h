@@ -34,4 +34,10 @@
 // winsock2.h(212) : error C2011: 'netent' : 'struct' type redefinition
 // winsock2.h(219) : error C2011: 'servent' : 'struct' type redefinition 
 
+
+#if _MSC_VER < 1600
+#include "nullptr_emulation.h"
+#endif
+
+
 #endif
