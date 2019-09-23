@@ -60,13 +60,13 @@ class NetworkIDManager;
 	{
 	public:
 		/// \brief Queue a call to RPC4::RegisterFunction() globally. Actual call occurs once RPC4 is attached to an instance of RakPeer or TCPInterface.
-		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ));
+		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), void *pContext);
 
 		/// \brief Queue a call to RPC4::RegisterSlot() globally. Actual call occurs once RPC4 is attached to an instance of RakPeer or TCPInterface.
-		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ), int callPriority);
+		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), int callPriority, void *pContext);
 
 		/// \brief Queue a call to RPC4::RegisterBlockingFunction() globally. Actual call occurs once RPC4 is attached to an instance of RakPeer or TCPInterface.
-		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet ));
+		RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet, void *pContext ), void *pContext);
 
 		/// \brief Queue a call to RPC4::RegisterLocalCallback() globally. Actual call occurs once RPC4 is attached to an instance of RakPeer or TCPInterface.
 		RPC4GlobalRegistration(const char* uniqueID, MessageID messageId);
@@ -96,18 +96,20 @@ class NetworkIDManager;
 		/// \sa RegisterPacketCallback()
 		/// \param[in] uniqueID Identifier to be associated with \a functionPointer. If this identifier is already in use, the call will return false.
 		/// \param[in] functionPointer C function pointer to be called
+		/// \param[in] pContext The pContext parameter of functionPointer
 		/// \return True if the hash of uniqueID is not in use, false otherwise.
-		bool RegisterFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ));
+		bool RegisterFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), void *pContext);
 
 		/// Register a slot, which is a function pointer to one or more implementations that supports this function signature
 		/// When a signal occurs, all slots with the same identifier are called.
 		/// \param[in] sharedIdentifier A string to identify the slot. Recommended to be the same as the name of the function.
 		/// \param[in] functionPtr Pointer to the function. For C, just pass the name of the function. For C++, use ARPC_REGISTER_CPP_FUNCTION
 		/// \param[in] callPriority Slots are called by order of the highest callPriority first. For slots with the same priority, they are called in the order they are registered
-		void RegisterSlot(const char *sharedIdentifier, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ), int callPriority);
+		/// \param[in] pContext The pContext parameter of functionPointer
+		void RegisterSlot(const char *sharedIdentifier, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), int callPriority, void *pContext);
 
 		/// \brief Same as \a RegisterFunction, but is called with CallBlocking() instead of Call() and returns a value to the caller
-		bool RegisterBlockingFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet ));
+		bool RegisterBlockingFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet, void *pContext ), void *pContext);
 
 		/// \deprecated Use RegisterSlot and invoke on self only when the packet you want arrives
 		/// When a RakNet Packet with the specified identifier is returned, execute CallLoopback() on a function previously registered with RegisterFunction()
@@ -191,14 +193,15 @@ class NetworkIDManager;
 		struct LocalSlotObject
 		{
 			LocalSlotObject() {}
-			LocalSlotObject(unsigned int _registrationCount,int _callPriority, void ( *_functionPointer ) (SLNet::BitStream *userData, Packet *packet ))
-			{registrationCount=_registrationCount;callPriority=_callPriority;functionPointer=_functionPointer;}
+			LocalSlotObject(unsigned int _registrationCount,int _callPriority, void ( *_functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), void *_pContext)
+			{registrationCount=_registrationCount;callPriority=_callPriority;functionPointer=_functionPointer;pContext=_pContext;}
 			~LocalSlotObject() {}
 
 			// Used so slots are called in the order they are registered
 			unsigned int registrationCount;
 			int callPriority;
-			void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet );
+			void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext );
+			void *pContext;
 		};
 
 		static int LocalSlotObjectComp( const LocalSlotObject &key, const LocalSlotObject &data );
@@ -218,8 +221,25 @@ class NetworkIDManager;
 		virtual void OnAttach(void);
 		virtual PluginReceiveResult OnReceive(Packet *packet);
 
-		DataStructures::Hash<SLNet::RakString, void ( * ) (SLNet::BitStream *, Packet * ),64, SLNet::RakString::ToInteger> registeredNonblockingFunctions;
-		DataStructures::Hash<SLNet::RakString, void ( * ) (SLNet::BitStream *, SLNet::BitStream *, Packet * ),64, SLNet::RakString::ToInteger> registeredBlockingFunctions;
+		struct NonBlockingFunctionInfo {
+			typedef void (*FilePointer) (SLNet::BitStream *, Packet *, void *);
+			NonBlockingFunctionInfo() : fp(NULL), pContext(NULL) {};
+			NonBlockingFunctionInfo(FilePointer _fp, void *_pContext) : fp(_fp), pContext(_pContext) {};
+
+			FilePointer fp;
+			void *pContext;
+		};
+		struct BlockingFunctionInfo {
+			typedef void (*FilePointer) (SLNet::BitStream *, SLNet::BitStream *, Packet *, void *);
+			BlockingFunctionInfo() : fp(NULL), pContext(NULL) {};
+			BlockingFunctionInfo(FilePointer _fp, void *_pContext) : fp(_fp), pContext(_pContext) {};
+
+			FilePointer fp;
+			void *pContext;
+		};
+
+		DataStructures::Hash<SLNet::RakString, NonBlockingFunctionInfo,64, SLNet::RakString::ToInteger> registeredNonblockingFunctions;
+		DataStructures::Hash<SLNet::RakString, BlockingFunctionInfo,64, SLNet::RakString::ToInteger> registeredBlockingFunctions;
 		DataStructures::OrderedList<MessageID,LocalCallback*,RPC4::LocalCallbackComp> localCallbacks;
 
 		SLNet::BitStream blockingReturnValue;

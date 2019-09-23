@@ -34,16 +34,17 @@ STATIC_FACTORY_DEFINITIONS(RPC4,RPC4);
 
 struct GlobalRegistration
 {
-	void ( *registerFunctionPointer ) (SLNet::BitStream *userData, Packet *packet );
-	void ( *registerBlockingFunctionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet );
+	void ( *registerFunctionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext );
+	void ( *registerBlockingFunctionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet, void *pContext );
 	char functionName[RPC4_GLOBAL_REGISTRATION_MAX_FUNCTION_NAME_LENGTH];
 	MessageID messageId;
 	int callPriority;
+	void *pContext;
 };
 static GlobalRegistration globalRegistrationBuffer[RPC4_GLOBAL_REGISTRATION_MAX_FUNCTIONS];
 static unsigned int globalRegistrationIndex=0;
 
-RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ))
+RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), void *pContext)
 {
 	RakAssert(globalRegistrationIndex!=RPC4_GLOBAL_REGISTRATION_MAX_FUNCTIONS);
 	unsigned int i;
@@ -53,11 +54,12 @@ RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *fun
 		globalRegistrationBuffer[globalRegistrationIndex].functionName[i]=uniqueID[i];
 	}
 	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=functionPointer;
-	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=0;
+	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=NULL;
 	globalRegistrationBuffer[globalRegistrationIndex].callPriority=0xFFFFFFFF;
+	globalRegistrationBuffer[globalRegistrationIndex].pContext=pContext;
 	globalRegistrationIndex++;
 }
-RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ), int callPriority)
+RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), int callPriority, void *pContext)
 {
 	RakAssert(globalRegistrationIndex!=RPC4_GLOBAL_REGISTRATION_MAX_FUNCTIONS);
 	unsigned int i;
@@ -67,12 +69,13 @@ RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *fun
 		globalRegistrationBuffer[globalRegistrationIndex].functionName[i]=uniqueID[i];
 	}
 	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=functionPointer;
-	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=0;
+	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=NULL;
 	RakAssert(callPriority!=(int) 0xFFFFFFFF);
 	globalRegistrationBuffer[globalRegistrationIndex].callPriority=callPriority;
+	globalRegistrationBuffer[globalRegistrationIndex].pContext=pContext;
 	globalRegistrationIndex++;
 }
-RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet ))
+RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet, void *pContext ), void *pContext)
 {
 	RakAssert(globalRegistrationIndex!=RPC4_GLOBAL_REGISTRATION_MAX_FUNCTIONS);
 	unsigned int i;
@@ -81,8 +84,10 @@ RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, void ( *fun
 		RakAssert(i<=RPC4_GLOBAL_REGISTRATION_MAX_FUNCTION_NAME_LENGTH-1);
 		globalRegistrationBuffer[globalRegistrationIndex].functionName[i]=uniqueID[i];
 	}
-	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=0;
+	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=NULL;
 	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=functionPointer;
+	globalRegistrationBuffer[globalRegistrationIndex].callPriority=0xFFFFFFFF;
+	globalRegistrationBuffer[globalRegistrationIndex].pContext=pContext;
 	globalRegistrationIndex++;
 }
 RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, MessageID messageId)
@@ -94,9 +99,11 @@ RPC4GlobalRegistration::RPC4GlobalRegistration(const char* uniqueID, MessageID m
 		RakAssert(i<=RPC4_GLOBAL_REGISTRATION_MAX_FUNCTION_NAME_LENGTH-1);
 		globalRegistrationBuffer[globalRegistrationIndex].functionName[i]=uniqueID[i];
 	}
-	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=0;
-	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=0;
+	globalRegistrationBuffer[globalRegistrationIndex].registerFunctionPointer=NULL;
+	globalRegistrationBuffer[globalRegistrationIndex].registerBlockingFunctionPointer=NULL;
 	globalRegistrationBuffer[globalRegistrationIndex].messageId=messageId;
+	globalRegistrationBuffer[globalRegistrationIndex].callPriority=0xFFFFFFFF;
+	globalRegistrationBuffer[globalRegistrationIndex].pContext=NULL;
 	globalRegistrationIndex++;
 }
 
@@ -154,18 +161,18 @@ RPC4::~RPC4()
 	}
 	localSlots.Clear(_FILE_AND_LINE_);
 }
-bool RPC4::RegisterFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ))
+bool RPC4::RegisterFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext), void *pContext)
 {
 	DataStructures::HashIndex skhi = registeredNonblockingFunctions.GetIndexOf(uniqueID);
 	if (skhi.IsInvalid()==false)
 		return false;
 
-	registeredNonblockingFunctions.Push(uniqueID,functionPointer,_FILE_AND_LINE_);
+	registeredNonblockingFunctions.Push(uniqueID, NonBlockingFunctionInfo(functionPointer, pContext), _FILE_AND_LINE_);
 	return true;
 }
-void RPC4::RegisterSlot(const char *sharedIdentifier, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet ), int callPriority)
+void RPC4::RegisterSlot(const char *sharedIdentifier, void ( *functionPointer ) (SLNet::BitStream *userData, Packet *packet, void *pContext ), int callPriority, void *pContext)
 {
-	LocalSlotObject lso(nextSlotRegistrationCount++, callPriority, functionPointer);
+	LocalSlotObject lso(nextSlotRegistrationCount++, callPriority, functionPointer, pContext);
 	DataStructures::HashIndex idx = GetLocalSlotIndex(sharedIdentifier);
 	LocalSlot *localSlot;
 	if (idx.IsInvalid())
@@ -179,13 +186,13 @@ void RPC4::RegisterSlot(const char *sharedIdentifier, void ( *functionPointer ) 
 	}
 	localSlot->slotObjects.Insert(lso,lso,true,_FILE_AND_LINE_);
 }
-bool RPC4::RegisterBlockingFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet ))
+bool RPC4::RegisterBlockingFunction(const char* uniqueID, void ( *functionPointer ) (SLNet::BitStream *userData, SLNet::BitStream *returnData, Packet *packet, void *pContext ), void *pContext)
 {
 	DataStructures::HashIndex skhi = registeredBlockingFunctions.GetIndexOf(uniqueID);
 	if (skhi.IsInvalid()==false)
 		return false;
 
-	registeredBlockingFunctions.Push(uniqueID,functionPointer,_FILE_AND_LINE_);
+	registeredBlockingFunctions.Push(uniqueID,BlockingFunctionInfo(functionPointer, pContext),_FILE_AND_LINE_);
 	return true;
 }
 void RPC4::RegisterLocalCallback(const char* uniqueID, MessageID messageId)
@@ -213,13 +220,13 @@ void RPC4::RegisterLocalCallback(const char* uniqueID, MessageID messageId)
 }
 bool RPC4::UnregisterFunction(const char* uniqueID)
 {
-	void ( *f ) (SLNet::BitStream *, Packet * );
-	return registeredNonblockingFunctions.Pop(f,uniqueID,_FILE_AND_LINE_);
+	NonBlockingFunctionInfo finfo;
+	return registeredNonblockingFunctions.Pop(finfo,uniqueID,_FILE_AND_LINE_);
 }
 bool RPC4::UnregisterBlockingFunction(const char* uniqueID)
 {
-	void ( *f ) (SLNet::BitStream *, SLNet::BitStream *,Packet * );
-	return registeredBlockingFunctions.Pop(f,uniqueID,_FILE_AND_LINE_);
+	BlockingFunctionInfo finfo;
+	return registeredBlockingFunctions.Pop(finfo,uniqueID,_FILE_AND_LINE_);
 }
 bool RPC4::UnregisterLocalCallback(const char* uniqueID, MessageID messageId)
 {
@@ -483,7 +490,7 @@ void RPC4::InvokeSignal(DataStructures::HashIndex functionIndex, SLNet::BitStrea
 	{
 		//t2 = GetTimeUS();
 
-		localSlot->slotObjects[i].functionPointer(serializedParameters, packet);
+		localSlot->slotObjects[i].functionPointer(serializedParameters, packet, localSlot->slotObjects[i].pContext);
 
 		//t3 = GetTimeUS();
 
@@ -514,12 +521,12 @@ void RPC4::OnAttach(void)
 		if (globalRegistrationBuffer[i].registerFunctionPointer)
 		{
 			if (globalRegistrationBuffer[i].callPriority==(int)0xFFFFFFFF)
-				RegisterFunction(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerFunctionPointer);
+				RegisterFunction(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerFunctionPointer, globalRegistrationBuffer[i].pContext);
 			else
-				RegisterSlot(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerFunctionPointer, globalRegistrationBuffer[i].callPriority);
+				RegisterSlot(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerFunctionPointer, globalRegistrationBuffer[i].callPriority, globalRegistrationBuffer[i].pContext);
 		}
 		else if (globalRegistrationBuffer[i].registerBlockingFunctionPointer)
-			RegisterBlockingFunction(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerBlockingFunctionPointer);
+			RegisterBlockingFunction(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].registerBlockingFunctionPointer, globalRegistrationBuffer[i].pContext);
 		else
 			RegisterLocalCallback(globalRegistrationBuffer[i].functionName, globalRegistrationBuffer[i].messageId);
 	}
@@ -550,10 +557,10 @@ PluginReceiveResult RPC4::OnReceive(Packet *packet)
 					return RR_STOP_PROCESSING_AND_DEALLOCATE;
 				}
 
-				void ( *fp ) (SLNet::BitStream *, Packet * );
-				fp = registeredNonblockingFunctions.ItemAtIndex(skhi);
+				NonBlockingFunctionInfo finfo;
+				finfo = registeredNonblockingFunctions.ItemAtIndex(skhi);
 				bsIn.AlignReadToByteBoundary();
-				fp(&bsIn,packet);
+				finfo.fp(&bsIn,packet, finfo.pContext);
 			}
 			else
 			{
@@ -568,11 +575,11 @@ PluginReceiveResult RPC4::OnReceive(Packet *packet)
 					return RR_STOP_PROCESSING_AND_DEALLOCATE;
 				}
 
-				void ( *fp ) (SLNet::BitStream *, SLNet::BitStream *, Packet * );
-				fp = registeredBlockingFunctions.ItemAtIndex(skhi);
+				BlockingFunctionInfo finfo;
+				finfo = registeredBlockingFunctions.ItemAtIndex(skhi);
 				SLNet::BitStream returnData;
 				bsIn.AlignReadToByteBoundary();
-				fp(&bsIn, &returnData, packet);
+				finfo.fp(&bsIn, &returnData, packet, finfo.pContext);
 
 				SLNet::BitStream out;
 				out.Write((MessageID) ID_RPC_PLUGIN);
@@ -619,10 +626,10 @@ PluginReceiveResult RPC4::OnReceive(Packet *packet)
 			DataStructures::HashIndex skhi = registeredNonblockingFunctions.GetIndexOf(lc->functions[index2].C_String());
 			if (skhi.IsInvalid()==false)
 			{
-				void ( *fp ) (SLNet::BitStream *, Packet * );
-				fp = registeredNonblockingFunctions.ItemAtIndex(skhi);
+				NonBlockingFunctionInfo finfo;
+				finfo = registeredNonblockingFunctions.ItemAtIndex(skhi);
 				bsIn.AlignReadToByteBoundary();
-				fp(&bsIn,packet);
+				finfo.fp(&bsIn,packet, finfo.pContext);
 			}		
 		}
 	}
