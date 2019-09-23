@@ -147,7 +147,7 @@ void LogCommandParser::WriteLog(const char *channelName, const char *format, ...
 	char text[REMOTE_MAX_TEXT_INPUT];
 	va_list ap;
 	va_start(ap, format);
-	vsnprintf_s(text, REMOTE_MAX_TEXT_INPUT-1, format, ap);
+	vsnprintf_s(text, REMOTE_MAX_TEXT_INPUT-1, _TRUNCATE, format, ap);
 	va_end(ap);
 
 	// Make sure that text ends in \r\n
