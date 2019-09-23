@@ -34,17 +34,23 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 {
 	if (s == 0)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(buffer, "stats is a NULL pointer in statsToString\n");
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		return;
 	}
 
 	if (verbosityLevel == 0)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(buffer,
 			"Bytes per second sent     %" PRINTF_64_BIT_MODIFIER "u\n"
 			"Bytes per second received %" PRINTF_64_BIT_MODIFIER "u\n"
@@ -53,12 +59,16 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 			(long long unsigned int) s->valueOverLastSecond[ACTUAL_BYTES_RECEIVED],
 			s->packetlossLastSecond*100.0f
 		);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 	}
 	else if (verbosityLevel == 1)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(buffer,
 			"Actual bytes per second sent       %" PRINTF_64_BIT_MODIFIER "u\n"
 			"Actual bytes per second received   %" PRINTF_64_BIT_MODIFIER "u\n"
@@ -79,7 +89,9 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 			s->packetlossTotal*100.0f,
 			(long long unsigned int) (uint64_t)((SLNet::GetTimeUS() - s->connectionStartTime) / 1000000)
 		);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 		if (s->BPSLimitByCongestionControl != 0)
 		{
@@ -89,10 +101,14 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 				(long long unsigned int) s->BPSLimitByCongestionControl,
 				100.0f * s->valueOverLastSecond[ACTUAL_BYTES_SENT] / s->BPSLimitByCongestionControl
 			);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 			strcat(buffer, buff2);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		}
 		if (s->BPSLimitByOutgoingBandwidthLimit != 0)
 		{
@@ -102,16 +118,22 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 				(long long unsigned int) s->BPSLimitByOutgoingBandwidthLimit,
 				100.0f * s->valueOverLastSecond[ACTUAL_BYTES_SENT] / s->BPSLimitByOutgoingBandwidthLimit
 			);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 			strcat(buffer, buff2);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		}
 	}
 	else
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(buffer,
 			"Actual bytes per second sent         %" PRINTF_64_BIT_MODIFIER "u\n"
 			"Actual bytes per second received     %" PRINTF_64_BIT_MODIFIER "u\n"
@@ -156,7 +178,9 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 			s->packetlossTotal*100.0f,
 			(long long unsigned int) (uint64_t)((SLNet::GetTimeUS() - s->connectionStartTime) / 1000000)
 		);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 		if (s->BPSLimitByCongestionControl != 0)
 		{
@@ -166,10 +190,14 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 				(long long unsigned int) s->BPSLimitByCongestionControl,
 				100.0f * s->valueOverLastSecond[ACTUAL_BYTES_SENT] / s->BPSLimitByCongestionControl
 			);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 			strcat(buffer, buff2);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		}
 		if (s->BPSLimitByOutgoingBandwidthLimit != 0)
 		{
@@ -179,10 +207,14 @@ void RAK_DLL_EXPORT SLNet::StatisticsToString(RakNetStatistics *s, char *buffer,
 				(long long unsigned int) s->BPSLimitByOutgoingBandwidthLimit,
 				100.0f * s->valueOverLastSecond[ACTUAL_BYTES_SENT] / s->BPSLimitByOutgoingBandwidthLimit
 			);
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 			strcat(buffer, buff2);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		}
 	}
 }

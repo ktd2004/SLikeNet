@@ -2983,14 +2983,16 @@ bool ReliabilityLayer::IsOlderOrderedPacket( OrderingIndexType newPacketOrdering
 	}
 
 	else
+	{
 		if ( newPacketOrderingIndex >= ( OrderingIndexType ) ( waitingForPacketOrderingIndex - (( OrderingIndexType ) maxRange/(OrderingIndexType)2+(OrderingIndexType)1) ) ||
 			newPacketOrderingIndex < waitingForPacketOrderingIndex )
 		{
 			return true;
 		}
+	}
 
-		// Old packet
-		return false;
+	// Old packet
+	return false;
 }
 
 //-------------------------------------------------------------------------------------------------------

@@ -843,10 +843,14 @@ void BitStream::PrintBits( char *out ) const
 {
 	if (numberOfBitsUsed <= 0)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		strcpy(out, "No bits\n");
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 		return;
 	}
 
@@ -936,10 +940,14 @@ void BitStream::PrintHex( char *out ) const
 	BitSize_t i;
 	for (i = 0; i < GetNumberOfBytesUsed(); i++)
 	{
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		sprintf(out + i * 3, "%02x ", data[i]);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 	}
 }
 
