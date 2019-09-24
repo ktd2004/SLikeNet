@@ -1,3 +1,4 @@
+/* vim:set ft=cpp ts=4 sts=4 sw=4 noet ai si bs=2 cin: */
 /*****************************************************************************
 _kbhit() and _getch() for Linux/UNIX
 Chris Giese <geezer@execpc.com>	http://my.execpc.com/~geezer

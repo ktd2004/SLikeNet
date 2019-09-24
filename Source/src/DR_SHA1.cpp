@@ -1,3 +1,4 @@
+/* vim:set ft=cpp ts=4 sts=4 sw=4 noet ai si bs=2 cin: */
 /*
   100% free public domain implementation of the SHA-1 algorithm
   by Dominik Reichl <dominik.reichl@t-online.de>
