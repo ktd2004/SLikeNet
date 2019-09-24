@@ -23,6 +23,8 @@ using namespace SLNet;
 
 unsigned int IncrementalReadInterface::GetFilePart( const char *filename, unsigned int startReadBytes, unsigned int numBytesToRead, void *preallocatedDestination, FileListNodeContext context)
 {
+	(void)context;
+
 	FILE *fp;
 	if (fopen_s(&fp, filename, "rb")!=0)
 		return 0;

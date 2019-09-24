@@ -82,13 +82,15 @@ void RNS2_Berkley::SetIPHdrIncl(int ipHdrIncl)
 }
 void RNS2_Berkley::SetDoNotFragment( int opt )
 {
-	#if defined( IP_DONTFRAGMENT )
- #if defined(_WIN32) && !defined(_DEBUG)
-		// If this assert hit you improperly linked against WSock32.h
-		RakAssert(IP_DONTFRAGMENT==14);
+#if defined( IP_DONTFRAGMENT )
+	#if defined(_WIN32) && !defined(_DEBUG)
+	// If this assert hit you improperly linked against WSock32.h
+	RakAssert(IP_DONTFRAGMENT==14);
 	#endif
-		setsockopt__( rns2Socket, boundAddress.GetIPPROTO(), IP_DONTFRAGMENT, ( char * ) & opt, sizeof ( opt ) );
-	#endif
+	setsockopt__( rns2Socket, boundAddress.GetIPPROTO(), IP_DONTFRAGMENT, ( char * ) & opt, sizeof ( opt ) );
+#else
+	(void)opt;
+#endif
 }
 
 void RNS2_Berkley::GetSystemAddressIPV4 ( RNS2Socket rns2Socket, SystemAddress *systemAddressOut )

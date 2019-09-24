@@ -134,7 +134,7 @@ int RakThread::Create( void* start_address( void* ), void *arglist, int priority
 
 	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_DETACHED );
 	int res = pthread_create( &threadHandle, &attr, start_address, arglist );
-	RakAssert(res==0 && "pthread_create in RakThread.cpp failed.")
+	RakAssert(res==0 && "pthread_create in RakThread.cpp failed.");
 	return res;
 #endif
 }

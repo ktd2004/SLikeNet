@@ -122,7 +122,7 @@ int sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...)
 		return -1;
 	}
 
-	if (numCharsWritten >= sizeOfBuffer) {
+	if (numCharsWritten >= (int)sizeOfBuffer) {
 		buffer[0] = '\0'; // buffer too small, write empty string to ensure terminating \0-char
 	}
 
@@ -270,7 +270,7 @@ int vsnprintf_s(char *buffer, size_t sizeOfBuffer, size_t count, const char *for
 	}
 
 	int numCharsWritten = vsnprintf(buffer, maxChars, format, argptr);
-	if (numCharsWritten >= maxChars) {
+	if (numCharsWritten >= (int)maxChars) {
 		if (count != _TRUNCATE) {
 			buffer[0] = '\0'; // buffer set to empty string
 			return -1;
