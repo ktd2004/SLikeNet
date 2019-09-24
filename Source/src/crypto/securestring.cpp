@@ -1,3 +1,4 @@
+/* vim:set ft=cpp ts=4 sts=4 sw=4 noet ai si bs=2 cin: */
 /*
  *  Copyright (c) 2018-2019, SLikeSoft UG (haftungsbeschränkt)
  *

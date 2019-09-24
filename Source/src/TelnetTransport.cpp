@@ -1,3 +1,4 @@
+/* vim:set ft=cpp ts=4 sts=4 sw=4 noet ai si bs=2 cin: */
 /*
  *  Original work: Copyright (c) 2014, Oculus VR, Inc.
  *  All rights reserved.
