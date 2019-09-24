@@ -1,0 +1,28 @@
+* text=auto
+.* text=auto
+
+*.txt text
+
+*.c text
+*.cpp text
+*.h text
+
+CMakeLists.txt text
+*.cmake text
+
+
+# Declare files that will always have CRLF line endings on checkout.
+*.dsw text eol=crlf
+*.dsp text eol=crlf
+*.sln text eol=crlf
+*.vcproj text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.vcxproj.user text eol=crlf
+*.rc text eol=crlf
+*.rc2 text eol=crlf
+*.manifest text eol=crlf
+
+*.ini text eol=crlf
+*.inf text eol=crlf
+*.bat text eol=crlf
