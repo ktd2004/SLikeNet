@@ -167,6 +167,7 @@ SLNet::RakString SocketLayer::GetSubNetForSocketAndIp(__UDPSOCKET__ inSock, SLNe
 	SLNet::RakString ipString;
 
 #if   defined(WINDOWS_STORE_RT)
+	(void)inSock;
 	RakAssert("Not yet supported" && 0);
 	return "";
 #elif defined(_WIN32)
@@ -198,6 +199,7 @@ SLNet::RakString SocketLayer::GetSubNetForSocketAndIp(__UDPSOCKET__ inSock, SLNe
 	}
 	return "";
 #else
+	(void)inSock;
 
 	int fd,fd2;
 	fd2 = socket__(AF_INET, SOCK_DGRAM, 0);

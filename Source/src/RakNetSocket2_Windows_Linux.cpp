@@ -180,7 +180,9 @@ void GetMyIP_Linux(SystemAddress addresses[MAXIMUM_NUMBER_OF_INTERNAL_IDS], cons
 						addresses[outAddressIndex++].address.addr6 = *curSocketAddress;
 					}
 				}
-#endif // RAKNET_SUPPORT_IPV6 == 1
+#else	// RAKNET_SUPPORT_IPV6 == 1
+				(void)includeIPv6;
+#endif	// RAKNET_SUPPORT_IPV6 != 1
 				// else skip the address (neither IPv4 nor IPv6 address)
 			}
 		}

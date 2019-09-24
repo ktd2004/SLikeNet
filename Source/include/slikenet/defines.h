@@ -109,12 +109,12 @@
 
 #ifndef RakAssert
 #if   defined(__native_client__)
-#define RakAssert(x)
+#define RakAssert(x) ((void)(x))
 #else
 #if defined(_DEBUG)
 #define RakAssert(x) assert(x);
 #else
-#define RakAssert(x) 
+#define RakAssert(x) ((void)(x))
 #endif
 #endif
 #endif
