@@ -1043,6 +1043,11 @@ namespace SLNet
 		inTemplateVar.Serialize(this);
 	}
 	template <>
+		inline void BitStream::Write(const std::string& inTemplateVar )
+	{
+		Write(inTemplateVar.c_str(), inTemplateVar.size());
+	}
+	template <>
 		inline void BitStream::Write(const char * const &inStringVar)
 	{
 		RakString::Serialize(inStringVar, this);
@@ -1397,6 +1402,18 @@ namespace SLNet
 	inline bool BitStream::Read(RakWString &outTemplateVar)
 	{
 		return outTemplateVar.Deserialize(this);
+	}
+	template <>
+		inline bool BitStream::Read(std::string& outTemplateVar)
+	{
+		const int unread_bits = GetNumberOfUnreadBits();
+		if ((unread_bits & 7) == 0) {
+			outTemplateVar.resize((unread_bits / 8));
+		} else {
+			outTemplateVar.resize((unread_bits / 8) + 1);
+		}
+
+		return Read(&outTemplateVar[0], outTemplateVar.size());
 	}
 	template <>
 		inline bool BitStream::Read(char *&varString)
