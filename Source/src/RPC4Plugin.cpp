@@ -418,6 +418,11 @@ bool RPC4::CallBlocking( const char* uniqueID, SLNet::BitStream * bitStream, Pac
 		}
 	}
 
+	// Push back to head in reverse order
+	while (packetQueue.Size()) {
+		rakPeerInterface->PushBackPacket(packetQueue.Pop(),true);
+	}
+
 	returnData->Write(blockingReturnValue);
 	returnData->ResetReadPointer();
 	return true;
